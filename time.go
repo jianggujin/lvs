@@ -7,5 +7,5 @@ import (
 
 func main() {
 	timeZone, _ := time.LoadLocation("Asia/Shanghai")
-	fmt.Print(time.Now().In(timeZone).Format("2006-01-02 15:04:05"))
+	fmt.Print(time.Now().In(timeZone).Format("2006-01-02"))
 }
