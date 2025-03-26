@@ -4,6 +4,7 @@ package node
 
 import (
 	"fmt"
+	version2 "github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
 	"jianggujin.com/lvs/internal/config"
 	"jianggujin.com/lvs/internal/install"
@@ -12,6 +13,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -45,7 +49,13 @@ func (command *UseCommand) RunE(_ *cobra.Command, versions []string) error {
 	}
 
 	installHome := config.GetPath(config.KeyNodeHome)
-	version := nodeCmd.FixVersion(config.GetStringWithDefault(config.KeyNodeAliasPrefix+versions[0], versions[0]))
+
+	version, err := command.convertVersion(installHome, versions[0])
+	if err != nil {
+		return err
+	}
+	version = nodeCmd.FixVersion(version)
+
 	if _, err := nodeCmd.Semver(version); err != nil {
 		return util.WrapErrorMsg("[%s] is not a valid version", version)
 	}
@@ -138,4 +148,70 @@ func (command *UseCommand) RunE(_ *cobra.Command, versions []string) error {
 		}
 	}
 	return nil
+}
+
+func (command *UseCommand) convertVersion(installHome, version string) (string, error) {
+	version = config.GetStringWithDefault(config.KeyNodeAliasPrefix+version, version)
+
+	var filter func(*version2.Version) bool
+
+	if "latest" == version {
+		filter = func(*version2.Version) bool {
+			return true
+		}
+	} else {
+		version = nodeCmd.FixVersion(version)
+		semver, err := nodeCmd.Semver(version)
+		if err != nil {
+			return version, fmt.Errorf("[%s] is not a valid version", version)
+		}
+
+		if semver.Prerelease() == "" && semver.Metadata() == "" && version != nodeCmd.FixVersion(semver.Core().String()) {
+			segments := semver.Segments()
+			for i := len(segments) - 1; i >= 0; i-- {
+				if segments[i] != 0 {
+					segments[i] = segments[i] + 1
+					break
+				}
+			}
+			fmtParts := make([]string, len(segments))
+			for i, s := range segments {
+				fmtParts[i] = strconv.FormatInt(int64(s), 10)
+			}
+			constraints, err := version2.NewConstraint(fmt.Sprintf(">=%s,<%s", semver.String(), strings.Join(fmtParts, ".")))
+			if err != nil {
+				return version, fmt.Errorf("[%s] is not a valid version", version)
+			}
+			filter = func(version *version2.Version) bool {
+				return constraints.Check(version)
+			}
+		}
+	}
+	if filter != nil {
+		entries, err := os.ReadDir(installHome)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return version, util.WrapErrorMsg("find local installed version error").SetErr(err)
+			}
+		}
+		var vers []*version2.Version
+		if len(entries) > 0 {
+			for _, entry := range entries {
+				if !entry.IsDir() {
+					continue
+				}
+				if ver, _ := nodeCmd.Semver(entry.Name()); ver != nil && filter(ver) {
+					vers = append(vers, ver)
+				}
+			}
+		}
+		if len(vers) > 1 {
+			sort.Sort(version2.Collection(vers))
+		}
+		if len(vers) == 0 {
+			return version, fmt.Errorf("unable to find a version that matches the criteria [%s]", version)
+		}
+		version = nodeCmd.RawVersion(vers[len(vers)-1])
+	}
+	return version, nil
 }

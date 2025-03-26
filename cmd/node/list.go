@@ -11,6 +11,7 @@ import (
 	"jianggujin.com/lvs/internal/util"
 	"os"
 	"sort"
+	"time"
 )
 
 func init() {
@@ -52,23 +53,26 @@ func (command *ListCommand) RunE(_ *cobra.Command, consts []string) error {
 		}
 	}
 	var versions []*version.Version
-	installed := make(map[string]bool)
+	installed := make(map[string]time.Time)
 	if len(entries) > 0 {
 		for _, entry := range entries {
 			if !entry.IsDir() {
 				continue
 			}
-			ver, _ := nodeCmd.Semver(entry.Name())
-			if ver != nil {
+			if ver, _ := nodeCmd.Semver(entry.Name()); ver != nil {
 				versions = append(versions, ver)
-				installed[entry.Name()] = true
+				if info, _ := entry.Info(); info != nil {
+					if modTime := info.ModTime(); !modTime.IsZero() {
+						installed[entry.Name()] = modTime
+					}
+				}
 			}
 		}
 	}
 	if !command.All {
 		sort.Sort(version.Collection(versions))
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"", "Version"})
+		table.SetHeader([]string{"", "Version", "Time"})
 		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 		table.SetAlignment(tablewriter.ALIGN_CENTER)
 		table.SetCenterSeparator("|")
@@ -78,7 +82,7 @@ func (command *ListCommand) RunE(_ *cobra.Command, consts []string) error {
 			if constraints != nil && !constraints.Check(ver) {
 				continue
 			}
-			row := []string{"", nodeCmd.RawVersion(ver)}
+			row := []string{"", nodeCmd.RawVersion(ver), installed[nodeCmd.RawVersion(ver)].Format(time.DateTime)}
 			if row[1] == current {
 				row[0] = " * "
 			}
