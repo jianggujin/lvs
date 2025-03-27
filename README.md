@@ -38,7 +38,7 @@
 lvs install
 ```
 
-如需安装其他模块请参考[3.2 install](#3.2-install)部分
+如需安装其他模块请参考[3.2 install](#32-install)部分
 
 ## 2.2 Linux/MacOS
 
@@ -58,7 +58,7 @@ sudo chmod +x ~/lvs
 
 进入`LVS`程序所在目录，运行安装命令即可：
 
-> **建议**：`LVS`会尝试判断当前系统的终端类型以及配置文件，在安装之前建议使用`lvs config`命令查看`SHELL_TYPE`与`SHELL_CONFIG_PATH`的值是否正确，若该值为空或与实际不符，建议对其进行修改后再执行安装操作，详情参见[3.1 config](#3.1-config)部分
+> **建议**：`LVS`会尝试判断当前系统的终端类型以及配置文件，在安装之前建议使用`lvs config`命令查看`SHELL_TYPE`与`SHELL_CONFIG_PATH`的值是否正确，若该值为空或与实际不符，建议对其进行修改后再执行安装操作，详情参见[3.1 config](#31-config)部分
 
 ```sh
 ./lvs install
@@ -246,7 +246,7 @@ lvs node install -L -s latest  # 安装最新的安全修复的LTS版本
 lvs node install 18            # 安装指定约束版本，结合-l、-s、-L等标记判断最终版本号
 ```
 
-`node.js`的版本格式为`vx.x.x`，`LVS`会尝试解析版本号，如果不符合该格式，例如：`18`、`18.20`等形式，LVS`会将其作为版本约束，结合标记进行查找匹配的版本信息，若您希望输入的版本即为最终安装的版本，则可通过`-f`标记强制指定。
+`node.js`的版本格式为`vx.x.x`，`LVS`会尝试解析版本号，如果不符合该格式，例如：`18`、`18.20`等形式，`LVS`会将其作为版本约束，结合标记进行查找匹配的版本信息，若您希望输入的版本即为最终安装的版本，则可通过`-f`标记强制指定。
 
 `latest`为一个特殊的版本，表示安装最新的版本，结合其他标记判断最终的版本号。
 
@@ -367,7 +367,7 @@ lvs go install latest        # 安装最新版本
 lvs go install 1.20          # 安装指定约束版本，结合-l、-p等标记判断最终版本号
 ```
 
-`go`的版本格式为`gox.x.x`，`LVS`会尝试解析版本号，如果不符合该格式或无法解析出预览版本号部分，例如：`1`、`1.20`等形式，LVS`会将其作为版本约束，结合标记进行查找匹配的版本信息，若您希望输入的版本即为最终安装的版本，则可通过`-f`标记强制指定。
+`go`的版本格式为`gox.x.x`，`LVS`会尝试解析版本号，如果不符合该格式或无法解析出预览版本号部分，例如：`1`、`1.20`等形式，`LVS`会将其作为版本约束，结合标记进行查找匹配的版本信息，若您希望输入的版本即为最终安装的版本，则可通过`-f`标记强制指定。
 
 `latest`为一个特殊的版本，表示安装最新的版本，结合其他标记判断最终的版本号。
 
@@ -505,8 +505,3 @@ lvs go use 1.20.5     # 卸载指定版本
 
 如果觉得`LVS`对您有帮助的话，请帮忙在<a target="_blank" href='https://github.com/jianggujin/lvs'><img src="https://img.shields.io/github/stars/jianggujin/lvs.svg?style=flat-square&label=Stars&logo=github" alt="github star"/></a>
 的右上角点个⭐Star，若您在使用过程中发现问题或对`LVS`有一些建议，也欢迎提交[issues](https://github.com/jianggujin/ollama-desktop/issues)。
-
-## 6.1 星增长趋势
-
-[![Star History Chart](https://api.star-history.com/svg?repos=jianggujin/lvs&type=Date)](https://star-history.com/#jianggujin/lvs&Date)
-
